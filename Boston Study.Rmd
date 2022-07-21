@@ -1,0 +1,117 @@
+---
+title: "The classic study of the the Boston housing dataset"
+output: html_notebook
+---
+
+This notebook is used to demonstrate basic regression techniques and learn how to use R. It is demonstrated on the Boston housing dataset. There is very few statistics comments. Is just serves as a way of discovering R.
+
+### Libraries
+
+If not already done, run ``` install.packages('ISLR')```.
+```{r}
+library(MASS)
+library(ISLR)
+```
+
+### Simple Linear Regression
+
+The Boston dataset contains 506 neighborhoods around Boston. The objective is to predict the median house value, recorded as ````medv````, against the right predictors among the 13 available. They are the following.
+
+```{r}
+names(Boston)
+
+# To find more info uncomment line below
+# ?Boston 
+```
+
+Let's start with a simple linear regression, ````medv````against ````lstat```:
+
+```{r}
+attach(Boston)
+lm.fit = lm(medv~lstat)
+```
+
+```{r}
+summary(lm.fit)
+```
+
+To get a hold of the confidence interval of the coefficient estimates, we use ````confint()```
+
+```{r}
+confint(lm.fit)
+```
+
+You can also do a prediction if you'd like : 
+
+```{r}
+predict(lm.fit, data.frame(lstat=c(10,15,30)), interval="prediction")
+```
+
+This means the 95% confidence interval for the ````lstat``` value of 30 is (24.47, 25.63) and the 95% prediction interval is (-6.242765, 18.34749). The prediction interval is substantially wider because it it incorporates both the reducible (error on the estimate of f(X)) and irreducible (how much individual point differs from population regression plane) errors.
+
+```{r}
+plot(lstat, medv, col="red", pch="+")
+abline(lm.fit)
+```
+
+```{r}
+# Separate display into panels to display several plots at once
+par(mfrow=c(2,2))
+plot(lm.fit,)
+```
+```{r}
+# Let's look at the largest leverage statistic
+plot(hatvalues(lm.fit))
+which.max(hatvalues(lm.fit))
+```
+
+
+### Multiple Linear Regression
+
+```{r}
+mlm.fit = lm(medv~lstat+age)
+summary(mlm.fit)
+```
+
+You can regress against all predictors :
+
+```{r}
+alm.fit = lm(medv~., data=Boston)
+summary(alm.fit)
+```
+
+Let's compute the VIF coefficients. It measures collinearity with the rest of a variable with repsect to the rest of the predictors. A VIF close to 1 indicates absence of collinearity. Above 5 or 10 this is problematic.
+
+```{r}
+# install.packages("car)
+library(car)
+vif(alm.fit)
+```
+
+### Interaction terms
+
+```{r}
+summary(lm(medv~lstat*age, data=Boston))
+```
+
+### Non-linear transformations of the predictors
+
+```{r}
+lm.fit2 = lm(medv~lstat+I(lstat^2))
+summary(lm.fit2)
+```
+
+The ```anova()``` function performs a hyptothesis test to compare both models. The null hypothesis is that the two models perform equally well and the alternative is that the full model is superior; 
+
+```{r}
+lm.fit = lm(medv~lstat, data=Boston)
+anova(lm.fit, lm.fit2)
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(lm.fit2)
+```
+
+
+
